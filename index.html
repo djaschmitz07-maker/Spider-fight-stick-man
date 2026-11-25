@@ -30,6 +30,7 @@
     flex: 1;
     width: 100%;
     height: 100%;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -423,6 +424,118 @@
       font-size: 10px;
     }
   }
+
+  /* Phone Landscape (Sideways) Optimizations */
+  @media (max-height: 520px) and (orientation: landscape) {
+    #ui-overlay {
+      top: max(4px, env(safe-area-inset-top));
+      left: max(8px, env(safe-area-inset-left));
+      right: max(8px, env(safe-area-inset-right));
+      gap: 4px;
+    }
+    .hud-panel {
+      padding: 4px 8px;
+      border-radius: 7px;
+    }
+    .player-title {
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+    .health-bar-bg {
+      width: 78px;
+      height: 6px;
+      margin-bottom: 2px;
+    }
+    .weapon-info {
+      font-size: 9px;
+    }
+    .center-controls {
+      flex-direction: row;
+      padding: 4px 6px;
+      gap: 4px;
+    }
+    .center-controls button {
+      padding: 4px 6px;
+      font-size: 10px;
+    }
+    .right-hud-stack {
+      flex-direction: row-reverse;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    #btn-fullscreen {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+    #touch-controls {
+      bottom: max(8px, env(safe-area-inset-bottom));
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+    }
+    #analog-zone {
+      width: 104px;
+      height: 104px;
+    }
+    #analog-knob {
+      width: 42px;
+      height: 42px;
+    }
+    .touch-btn {
+      width: 50px;
+      height: 50px;
+      font-size: 16px;
+    }
+    .touch-btn.action-shoot {
+      width: 56px;
+      height: 56px;
+      font-size: 11px;
+    }
+    .touch-btn.small-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 9px;
+    }
+    #controls-modal {
+      align-items: flex-start;
+      padding: 8px;
+    }
+    .modal-card {
+      padding: 12px 14px;
+    }
+    .modal-card h1 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .modal-card p.subtitle {
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .controls-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .ctrl-box {
+      padding: 8px;
+    }
+    .ctrl-box h3 {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .ctrl-row {
+      font-size: 10px;
+      padding: 2px 0;
+    }
+    .start-btn {
+      padding: 8px;
+      font-size: 13px;
+    }
+    #banner-msg {
+      top: 46px;
+      font-size: 11px;
+      padding: 4px 12px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -476,7 +589,7 @@
 
   <!-- On-Screen Touch Controls for Mobile & Tablet -->
   <div id="touch-controls">
-    <!-- Left Hand: Virtual Analog Stick (Moves Screen Left/Right & Aims Gun) -->
+    <!-- Left Hand: Virtual Analog Stick (Steers Screen Up/Down/Left/Right & Aims Gun/Jumps) -->
     <div id="analog-zone" aria-label="Analog Move and Aim Stick">
       <div id="analog-knob"></div>
     </div>
@@ -496,22 +609,22 @@
   <div id="controls-modal">
     <div class="modal-card">
       <h1>ARACHNID ARENA</h1>
-      <p class="subtitle">Use the <strong>Analog Stick</strong> on mobile to steer Left/Right (even upside down!) and aim your gun, or tap <strong>⛶ Full Screen</strong> in the top-right corner.</p>
+      <p class="subtitle">Push the <strong>Analog Stick</strong> (or <strong>WASD / Arrows</strong>) toward any screen direction—Up climbs walls, Down climbs down, Left/Right moves across floors & ceilings—and press <strong>JUMP</strong> to launch in the direction you're pointing!</p>
       
       <div class="controls-grid">
         <div class="ctrl-box" style="border-top: 3px solid #38bdf8;">
           <h3 style="color:#38bdf8;">Player 1 (Phone & Desktop)</h3>
-          <div class="ctrl-row"><span>Move Left / Right & Aim Gun</span><span><span class="key-badge">STICK</span> or <span class="key-badge">A</span>/<span class="key-badge">D</span></span></div>
-          <div class="ctrl-row"><span>Jump / Mid-Air Double Jump</span><span><span class="key-badge">JUMP</span> / <span class="key-badge">SPACE</span> / <span class="key-badge">↑</span></span></div>
-          <div class="ctrl-row"><span>Let Go / Drop Off Wall</span><span><span class="key-badge">▼</span> / <span class="key-badge">↓</span> / <span class="key-badge">S</span></span></div>
+          <div class="ctrl-row"><span>Steer Up/Down/Left/Right</span><span><span class="key-badge">STICK</span> / <span class="key-badge">WASD</span> / <span class="key-badge">ARROWS</span></span></div>
+          <div class="ctrl-row"><span>Directional Jump & 2nd Jump</span><span><span class="key-badge">JUMP</span> / <span class="key-badge">SPACE</span></span></div>
+          <div class="ctrl-row"><span>Let Go / Drop Off Wall</span><span><span class="key-badge">▼</span> / <span class="key-badge">C</span> / <span class="key-badge">SHIFT</span></span></div>
           <div class="ctrl-row"><span>Fire Weapon</span><span><span class="key-badge">FIRE</span> / <span class="key-badge">CLICK</span> / <span class="key-badge">E</span></span></div>
           <div class="ctrl-row"><span>Pick Up / Drop Weapon</span><span><span class="key-badge">GRAB</span> / <span class="key-badge">F</span></span></div>
         </div>
 
         <div class="ctrl-box" style="border-top: 3px solid #f43f5e;">
           <h3 style="color:#f43f5e;">Player 2 (Crimson Spider - Local)</h3>
-          <div class="ctrl-row"><span>Crawl Spider's Left / Right</span><span><span class="key-badge">←</span> / <span class="key-badge">→</span></span></div>
-          <div class="ctrl-row"><span>Jump / Double Jump / Drop</span><span><span class="key-badge">↑</span> x2 Jump / <span class="key-badge">↓</span> Drop</span></div>
+          <div class="ctrl-row"><span>Steer Up/Down/Left/Right</span><span><span class="key-badge">↑</span><span class="key-badge">↓</span><span class="key-badge">←</span><span class="key-badge">→</span></span></div>
+          <div class="ctrl-row"><span>Directional Jump & 2nd Jump</span><span><span class="key-badge">ENTER</span> / <span class="key-badge">R-SHIFT</span></span></div>
           <div class="ctrl-row"><span>Aim Weapon</span><span>Auto-targets or <span class="key-badge">I</span><span class="key-badge">J</span><span class="key-badge">K</span><span class="key-badge">L</span></span></div>
           <div class="ctrl-row"><span>Shoot</span><span><span class="key-badge">M</span> / <span class="key-badge">/</span></span></div>
           <div class="ctrl-row"><span>Pick Up / Drop Weapon</span><span><span class="key-badge">N</span> / <span class="key-badge">.</span></span></div>
@@ -535,12 +648,30 @@ const camera = {
   zoom: 0.62
 };
 
+function getIdealSingleZoom() {
+  const w = canvas.width || window.innerWidth;
+  const h = canvas.height || window.innerHeight;
+  const isMobileLandscape = h < 540 && w > h;
+  const isMobilePortrait = w < 768 && h >= w;
+  if (isMobileLandscape) return 0.56;
+  if (isMobilePortrait) return 0.50;
+  return 0.62;
+}
+
 function resizeCanvas() {
-  canvas.width = gameContainer.clientWidth || window.innerWidth;
-  canvas.height = gameContainer.clientHeight || window.innerHeight;
+  const w = gameContainer.clientWidth || window.innerWidth;
+  const h = Math.max(gameContainer.clientHeight || 0, window.innerHeight, 320);
+  canvas.width = w;
+  canvas.height = h;
 }
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+window.addEventListener('orientationchange', () => {
+  setTimeout(resizeCanvas, 100);
+  setTimeout(resizeCanvas, 300);
+});
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', resizeCanvas);
+}
 resizeCanvas();
 
 // Top-Right Fullscreen / Phone Takeover Toggle
@@ -635,16 +766,16 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyN' || e.code === 'Period') {
       if (!p2IsBot) players[1]?.toggleWeapon();
     }
-    if (e.code === 'Space' || e.code === 'KeyW' || (e.code === 'ArrowUp' && p2IsBot)) {
+    if (e.code === 'Space') {
       players[0]?.jump();
     }
-    if ((e.code === 'ArrowUp' || e.code === 'Enter' || e.code === 'ShiftRight') && !p2IsBot) {
+    if ((e.code === 'Enter' || e.code === 'ShiftRight') && !p2IsBot) {
       players[1]?.jump();
     }
-    if (e.code === 'KeyS' || (e.code === 'ArrowDown' && p2IsBot)) {
+    if (e.code === 'KeyC' || e.code === 'ShiftLeft') {
       players[0]?.dropOffSurface();
     }
-    if (e.code === 'ArrowDown' && !p2IsBot) {
+    if (e.code === 'ControlRight' && !p2IsBot) {
       players[1]?.dropOffSurface();
     }
   }
@@ -674,7 +805,7 @@ canvas.addEventListener('mouseup', (e) => {
 
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-// Virtual Analog Stick Controller (Controls Screen-Relative Left/Right & Gun Aiming; Up does NOT jump)
+// Virtual Analog Stick Controller (Steers Screen Up/Down/Left/Right & Gun/Jump Direction)
 const analogZone = document.getElementById('analog-zone');
 const analogKnob = document.getElementById('analog-knob');
 let activeStickTouchId = null;
@@ -1089,6 +1220,8 @@ class Spider {
     this.crawlMomentum = 0; // Smoothed tangent speed for corner inertia
     this.cornerLockTimer = 0; // Preserves continuous wrap direction across sharp 90° edges
     this.lockedTravelDir = 0;
+    this.moveInputX = 0; // Current screen-space directional input (-1..1)
+    this.moveInputY = 0; // Current screen-space directional input (-1..1)
     this.bodyAngle = 0;
 
     this.hp = 100;
@@ -1148,6 +1281,8 @@ class Spider {
     this.crawlMomentum = 0;
     this.cornerLockTimer = 0;
     this.lockedTravelDir = 0;
+    this.moveInputX = 0;
+    this.moveInputY = 0;
     this.abdomen = new RagdollNode(this.x, this.y + 18);
     this.stepCooldown = 0;
     for (let leg of this.legs) {
@@ -1204,28 +1339,67 @@ class Spider {
     updateHUD();
   }
 
+  getJumpVector(isSecondJump = false) {
+    // 1. If holding analog stick or directional keys, jump directly toward that pointed direction
+    const inputMag = Math.hypot(this.moveInputX, this.moveInputY);
+    if (inputMag > 0.16) {
+      let dirX = this.moveInputX / inputMag;
+      let dirY = this.moveInputY / inputMag;
+
+      // On first jump while attached to a surface, blend slightly away from the wall so you don't immediately re-stick into it
+      if (!isSecondJump && this.attached) {
+        const intoWall = dirX * this.normalX + dirY * this.normalY;
+        if (intoWall < 0.25) {
+          dirX += this.normalX * (0.45 - intoWall);
+          dirY += this.normalY * (0.45 - intoWall);
+          const len = Math.hypot(dirX, dirY) || 1;
+          dirX /= len;
+          dirY /= len;
+        }
+      }
+      return { x: dirX, y: dirY };
+    }
+
+    // 2. If not holding directional stick/keys, jump toward where the spider is facing/aiming
+    if (isSecondJump) {
+      return { x: Math.cos(this.aimAngle), y: Math.sin(this.aimAngle) };
+    }
+
+    // First jump fallback when neutral: push off surface normal blended with facing direction
+    let dirX = this.normalX * 0.75 + Math.cos(this.aimAngle) * 0.45;
+    let dirY = this.normalY * 0.75 + Math.sin(this.aimAngle) * 0.45 - 0.25;
+    const len = Math.hypot(dirX, dirY) || 1;
+    return { x: dirX / len, y: dirY / len };
+  }
+
   jump() {
     if (this.dead) return;
     if (this.attached) {
-      const jumpPower = 12.2;
-      this.vx = this.normalX * jumpPower + this.vx * 0.65;
-      this.vy = this.normalY * jumpPower - 3.4;
+      const dir = this.getJumpVector(false);
+      const jumpPower = 13.8;
+      this.x += this.normalX * 6;
+      this.y += this.normalY * 6;
+      this.vx = dir.x * jumpPower;
+      this.vy = dir.y * jumpPower;
       this.attached = false;
       this.crawlMomentum = 0;
       this.cornerLockTimer = 0;
       this.hasDoubleJump = true;
-      this.detachCooldown = 6;
-      this.abdomen.oldX += this.normalX * 6;
-      this.abdomen.oldY += this.normalY * 6;
-      spawnParticles(this.x - this.normalX * 16, this.y - this.normalY * 16, this.color, 8);
+      this.detachCooldown = 8;
+      this.abdomen.oldX -= dir.x * 7;
+      this.abdomen.oldY -= dir.y * 7;
+      spawnParticles(this.x - dir.x * 16, this.y - dir.y * 16, this.color, 9);
     } else if (this.hasDoubleJump) {
+      const dir = this.getJumpVector(true);
+      const doubleJumpPower = 14.2;
       this.hasDoubleJump = false;
-      this.vy = -12.6;
-      this.vx *= 1.08;
-      this.detachCooldown = 5;
-      this.abdomen.oldY += 10;
-      spawnParticles(this.x, this.y + 14, '#ffffff', 6);
-      spawnParticles(this.x, this.y + 14, this.color, 10);
+      this.vx = dir.x * doubleJumpPower;
+      this.vy = dir.y * doubleJumpPower;
+      this.detachCooldown = 6;
+      this.abdomen.oldX -= dir.x * 10;
+      this.abdomen.oldY -= dir.y * 10;
+      spawnParticles(this.x - dir.x * 12, this.y - dir.y * 12, '#ffffff', 7);
+      spawnParticles(this.x - dir.x * 12, this.y - dir.y * 12, this.color, 11);
     }
   }
 
@@ -1332,33 +1506,46 @@ class Spider {
     if (this.cornerLockTimer > 0) this.cornerLockTimer--;
     if (this.weaponRecoil > 0) this.weaponRecoil *= 0.82;
 
-    let inputDir = 0;
-    let screenInputDir = 0; // Used when analog stick steers screen-left/screen-right
+    let screenVecX = 0; // Screen-space X direction (-1 Left, +1 Right)
+    let screenVecY = 0; // Screen-space Y direction (-1 Up, +1 Down)
     let wantShoot = false;
 
     if (this.id === 0) {
-      if (keys['KeyA'] || (p2IsBot && keys['ArrowLeft'])) inputDir -= 1;
-      if (keys['KeyD'] || (p2IsBot && keys['ArrowRight'])) inputDir += 1;
+      if (keys['KeyA'] || (p2IsBot && keys['ArrowLeft'])) screenVecX -= 1;
+      if (keys['KeyD'] || (p2IsBot && keys['ArrowRight'])) screenVecX += 1;
+      if (keys['KeyW'] || (p2IsBot && keys['ArrowUp'])) screenVecY -= 1;
+      if (keys['KeyS'] || (p2IsBot && keys['ArrowDown'])) screenVecY += 1;
 
-      if (touchState.stickActive) {
-        // Analog stick horizontal axis moves spider screen-left or screen-right (even when upside down)
-        if (Math.abs(touchState.stickX) > 0.22) {
-          screenInputDir = touchState.stickX < 0 ? -1 : 1;
+      if (touchState.stickActive && touchState.stickMagnitude > 0.16) {
+        screenVecX = touchState.stickX;
+        screenVecY = touchState.stickY;
+        this.aimAngle = touchState.stickAngle;
+      } else {
+        const kMag = Math.hypot(screenVecX, screenVecY);
+        if (kMag > 0) {
+          screenVecX /= kMag;
+          screenVecY /= kMag;
         }
-        // Analog stick direction points the spider's gun
-        if (touchState.stickMagnitude > 0.14) {
-          this.aimAngle = touchState.stickAngle;
+        if (touchState.aimActive) {
+          const worldMouse = screenToWorld(mouse.screenX, mouse.screenY);
+          this.aimAngle = Math.atan2(worldMouse.y - this.y, worldMouse.x - this.x);
+        } else if (kMag > 0) {
+          this.aimAngle = Math.atan2(screenVecY, screenVecX);
+        } else if (players[1] && !players[1].dead) {
+          this.aimAngle = Math.atan2(players[1].y - this.y, players[1].x - this.x);
         }
-      } else if (touchState.aimActive) {
-        const worldMouse = screenToWorld(mouse.screenX, mouse.screenY);
-        this.aimAngle = Math.atan2(worldMouse.y - this.y, worldMouse.x - this.x);
-      } else if (players[1] && !players[1].dead) {
-        this.aimAngle = Math.atan2(players[1].y - this.y, players[1].x - this.x);
       }
       wantShoot = mouse.down || keys['KeyE'] || touchState.shoot;
     } else if (!p2IsBot) {
-      if (keys['ArrowLeft']) inputDir -= 1;
-      if (keys['ArrowRight']) inputDir += 1;
+      if (keys['ArrowLeft']) screenVecX -= 1;
+      if (keys['ArrowRight']) screenVecX += 1;
+      if (keys['ArrowUp']) screenVecY -= 1;
+      if (keys['ArrowDown']) screenVecY += 1;
+      const kMag = Math.hypot(screenVecX, screenVecY);
+      if (kMag > 0) {
+        screenVecX /= kMag;
+        screenVecY /= kMag;
+      }
 
       let aimX = 0, aimY = 0;
       if (keys['KeyJ']) aimX -= 1;
@@ -1367,15 +1554,21 @@ class Spider {
       if (keys['KeyK']) aimY += 1;
       if (aimX !== 0 || aimY !== 0) {
         this.aimAngle = Math.atan2(aimY, aimX);
+      } else if (kMag > 0) {
+        this.aimAngle = Math.atan2(screenVecY, screenVecX);
       } else if (players[0] && !players[0].dead) {
         this.aimAngle = Math.atan2(players[0].y - this.y, players[0].x - this.x);
       }
       wantShoot = keys['KeyM'] || keys['Slash'];
     } else {
       const ai = this.computeBotAI();
-      inputDir = ai.inputDir;
+      screenVecX = ai.vecX;
+      screenVecY = ai.vecY;
       wantShoot = ai.shoot;
     }
+
+    this.moveInputX = screenVecX;
+    this.moveInputY = screenVecY;
 
     const crawlSpeed = 6.2;
 
@@ -1386,20 +1579,20 @@ class Spider {
       const tx = -this.normalY;
       const ty = this.normalX;
 
-      let effectiveDir = inputDir;
-      if (screenInputDir !== 0) {
+      const inputMag = Math.hypot(screenVecX, screenVecY);
+      let effectiveDir = 0;
+
+      if (inputMag > 0.16) {
         if (this.cornerLockTimer > 0 && this.lockedTravelDir !== 0) {
-          // Maintain continuous wrap direction around sharp corners so analog stick doesn't flip mid-corner
+          // Keep wrapping smoothly around a 90-degree corner before evaluating the new wall tangent
           effectiveDir = this.lockedTravelDir;
-        } else if (Math.abs(tx) > 0.35) {
-          effectiveDir = (tx > 0 ? 1 : -1) * screenInputDir;
         } else {
-          // On vertical walls: if already moving vertically, keep vertical momentum; otherwise climb up/down
-          const wallSide = this.normalX > 0 ? -1 : 1; // -1 = left wall, +1 = right wall
-          if (Math.abs(this.crawlMomentum) > 1.8) {
-            effectiveDir = this.crawlMomentum > 0 ? 1 : -1;
-          } else {
-            effectiveDir = screenInputDir === wallSide ? -wallSide : wallSide;
+          // Project viewer's screen direction (Up/Down/Left/Right) directly onto the surface tangent!
+          // On a wall: pushing Up projects onto the upward tangent; pushing Down projects onto the downward tangent.
+          // On a floor or ceiling: pushing Left moves screen-left; pushing Right moves screen-right.
+          const tangentDot = screenVecX * tx + screenVecY * ty;
+          if (Math.abs(tangentDot) > 0.18) {
+            effectiveDir = tangentDot > 0 ? 1 : -1;
           }
         }
       } else {
@@ -1411,7 +1604,6 @@ class Spider {
       if (effectiveDir !== 0) {
         this.crawlMomentum += (targetSpeed - this.crawlMomentum) * 0.28;
       } else {
-        // Carry residual inertia briefly when releasing input, then settle smoothly
         this.crawlMomentum *= 0.78;
         if (Math.abs(this.crawlMomentum) < 0.2) this.crawlMomentum = 0;
       }
@@ -1422,7 +1614,6 @@ class Spider {
         this.vx = moveX;
         this.vy = moveY;
 
-        // Strong inward adhesion keeps the spider hugging convex corners as it rounds them
         this.x += this.vx - this.normalX * 3.2;
         this.y += this.vy - this.normalY * 3.2;
       } else {
@@ -1434,11 +1625,9 @@ class Spider {
 
       const contact = this.findSurfaceContact(platforms, this.vx, this.vy);
       if (contact) {
-        // Smooth normal rotation around sharp corners to prevent snap oscillation
         const normalDot = prevNx * contact.nx + prevNy * contact.ny;
         if (normalDot < 0.85 && Math.abs(this.crawlMomentum) > 0.5) {
-          // Rounding a sharp edge/corner: lock travel direction briefly so stick input doesn't reverse mid-turn
-          this.cornerLockTimer = 14;
+          this.cornerLockTimer = 10;
           this.lockedTravelDir = this.crawlMomentum >= 0 ? 1 : -1;
         }
 
@@ -1452,16 +1641,14 @@ class Spider {
         this.x += (contact.snapX - this.x) * 0.65;
         this.y += (contact.snapY - this.y) * 0.65;
       } else {
-        // Preserve tangential inertia when launching off an edge into mid-air
         this.attached = false;
         this.cornerLockTimer = 0;
       }
     } else {
       this.crawlMomentum = 0;
       this.cornerLockTimer = 0;
-      const airDir = screenInputDir !== 0 ? screenInputDir : inputDir;
       this.vy += 0.46;
-      this.vx += airDir * 0.42;
+      this.vx += screenVecX * 0.44;
       this.vx *= 0.97;
       this.vy *= 0.99;
 
@@ -1477,7 +1664,6 @@ class Spider {
           this.normalX = contact.nx;
           this.normalY = contact.ny;
 
-          // Project incoming air velocity onto the new surface tangent for seamless landing inertia
           const landTx = -contact.ny;
           const landTy = contact.nx;
           this.crawlMomentum = clamp((this.vx * landTx + this.vy * landTy) * 0.75, -crawlSpeed, crawlSpeed);
@@ -1527,7 +1713,6 @@ class Spider {
   }
 
   findSurfaceContact(platforms, vx = 0, vy = 0) {
-    // Slightly larger adhesion radius when attached so rounding 90° outer corners stays locked on
     const reach = this.attached ? this.radius + 14 : this.radius + 3;
     let best = null;
     let bestScore = Infinity;
@@ -1558,7 +1743,6 @@ class Spider {
           else { nx = 1; ny = 0; snapX = p.x + p.w + this.radius; }
         }
 
-        // Favor surfaces aligned with current normal so inner/outer corners transition smoothly
         const normalContinuity = this.attached ? (nx * this.normalX + ny * this.normalY) * 4 : 0;
         const approachDot = vx * nx + vy * ny;
         const score = d - normalContinuity + (approachDot < -0.1 ? -5 : 0);
@@ -1699,7 +1883,7 @@ class Spider {
 
   computeBotAI() {
     const enemy = players[0];
-    let inputDir = 0, shoot = false;
+    let vecX = 0, vecY = 0, shoot = false;
 
     if (!this.weapon && droppedWeapons.length > 0) {
       let closestW = droppedWeapons[0];
@@ -1708,10 +1892,13 @@ class Spider {
         const d = dist(this.x, this.y, w.x, w.y);
         if (d < minD) { minD = d; closestW = w; }
       }
-      const tx = -this.normalY;
-      const ty = this.normalX;
-      const dot = (closestW.x - this.x) * tx + (closestW.y - this.y) * ty;
-      inputDir = dot >= 0 ? 1 : -1;
+      const dx = closestW.x - this.x;
+      const dy = closestW.y - this.y;
+      const d = Math.hypot(dx, dy) || 1;
+      vecX = dx / d;
+      vecY = dy / d;
+      this.moveInputX = vecX;
+      this.moveInputY = vecY;
       if (minD < 50) {
         this.toggleWeapon();
       } else if (this.attached && Math.random() < 0.025) {
@@ -1719,27 +1906,29 @@ class Spider {
       } else if (!this.attached && this.hasDoubleJump && this.vy > 2 && closestW.y < this.y - 60 && Math.random() < 0.06) {
         this.jump();
       }
-      return { inputDir, shoot: false };
+      return { vecX, vecY, shoot: false };
     }
 
     if (enemy && !enemy.dead) {
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
-      const d = Math.hypot(dx, dy);
+      const d = Math.hypot(dx, dy) || 1;
 
       this.aimAngle = Math.atan2(dy, dx) + Math.sin(Date.now() * 0.005) * 0.06;
 
-      const tx = -this.normalY;
-      const ty = this.normalX;
-      const towardEnemy = dx * tx + dy * ty >= 0 ? 1 : -1;
-
       if (d > 420) {
-        inputDir = towardEnemy;
+        vecX = dx / d;
+        vecY = dy / d;
       } else if (d < 220) {
-        inputDir = -towardEnemy;
+        vecX = -dx / d;
+        vecY = -dy / d;
       } else {
-        inputDir = Math.sin(Date.now() * 0.002) > 0 ? 1 : -1;
+        vecX = Math.sin(Date.now() * 0.002) > 0 ? 1 : -1;
+        vecY = dy / d * 0.4;
       }
+
+      this.moveInputX = vecX;
+      this.moveInputY = vecY;
 
       if (this.attached && dy > 220 && this.normalY > 0.5 && Math.random() < 0.03) {
         this.dropOffSurface();
@@ -1753,7 +1942,7 @@ class Spider {
         shoot = true;
       }
     }
-    return { inputDir, shoot };
+    return { vecX, vecY, shoot };
   }
 
   draw(ctx) {
@@ -1924,7 +2113,7 @@ function toggleP2Mode() {
     btn.textContent = 'P2: Friend';
     btn.classList.add('active');
     p2Name.textContent = 'P2';
-    showBanner('Player 2 Joined! P1 uses WASD, P2 uses Arrow Keys!');
+    showBanner('Player 2 Joined! P1 uses WASD + Space, P2 uses Arrow Keys + Enter!');
   }
 }
 
@@ -1975,7 +2164,7 @@ function resetArena() {
 
   camera.x = players[0].x;
   camera.y = players[0].y;
-  camera.zoom = canvas.width < 768 ? 0.56 : 0.62;
+  camera.zoom = getIdealSingleZoom();
 
   const map = MAPS[currentMapIndex];
   for (let sp of map.weaponSpawns) {
@@ -1991,7 +2180,7 @@ function updateCamera(map) {
 
   let targetX = p1.x;
   let targetY = p1.y;
-  let targetZoom = canvas.width < 768 ? 0.56 : 0.62;
+  let targetZoom = getIdealSingleZoom();
 
   if (!p2IsBot && !p1.dead && !p2.dead) {
     targetX = (p1.x + p2.x) / 2;
@@ -2110,7 +2299,7 @@ function drawMap(map) {
 }
 
 function drawMinimap(map) {
-  if (canvas.width < 600) return;
+  if (canvas.width < 600 || canvas.height < 480) return;
   const mmW = 175;
   const mmH = (map.height / map.width) * mmW;
   const mmX = (canvas.width - mmW) / 2;
