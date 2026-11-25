@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Arachnid Arena - 2D Spider Shooter</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  body {
+    background-color: #0b0d14;
+    color: #e2e8f0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  #game-container {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #161b29 0%, #090b10 100%);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  #ui-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .hud-panel {
+    background: rgba(15, 20, 32, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+  }
+  .p1-hud {
+    border-left: 4px solid #38bdf8;
+  }
+  .p2-hud {
+    border-right: 4px solid #f43f5e;
+    text-align: right;
+  }
+  .player-title {
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .p2-hud .player-title {
+    justify-content: flex-end;
+  }
+  .health-bar-bg {
+    width: 140px;
+    height: 10px;
+    background: #1e293b;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .health-bar-fill {
+    height: 100%;
+    transition: width 0.15s ease-out;
+  }
+  .weapon-info {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .center-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  button:hover {
+    background: #334155;
+    transform: translateY(-1px);
+  }
+  button.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+  }
+  /* Mobile & Touch Controls Overlay */
+  #touch-controls {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    right: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 25;
+  }
+  #touch-controls.hidden {
+    display: none;
+  }
+  .touch-cluster {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    pointer-events: auto;
+  }
+  .touch-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.72);
+    border: 2px solid rgba(56, 189, 248, 0.55);
+    color: #f8fafc;
+    font-size: 22px;
+    font-weight: 800;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .touch-btn:active, .touch-btn.pressed {
+    background: rgba(2, 132, 199, 0.85);
+    border-color: #bae6fd;
+    transform: scale(0.93);
+  }
+  .touch-btn.action-shoot {
+    width: 72px;
+    height: 72px;
+    border-color: rgba(244, 63, 94, 0.7);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  .touch-btn.action-shoot:active, .touch-btn.action-shoot.pressed {
+    background: rgba(225, 29, 72, 0.85);
+  }
+  .touch-btn.small-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 12px;
+    border-color: rgba(148, 163, 184, 0.55);
+  }
+  #controls-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(9, 11, 16, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-card {
+    background: #131826;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    max-width: 680px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  }
+  .modal-card h1 {
+    font-size: 24px;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #38bdf8, #f43f5e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .modal-card p.subtitle {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ctrl-box {
+    background: #0d111a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .ctrl-box h3 {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  .ctrl-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+  }
+  .key-badge {
+    background: #1e293b;
+    border: 1px solid #475569;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #f8fafc;
+  }
+  .start-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .start-btn:hover {
+    background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  }
+  #banner-msg {
+    position: absolute;
+    top: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid #38bdf8;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 15px;
+    color: #f8fafc;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+    z-index: 20;
+    text-align: center;
+  }
+  @media (max-width: 768px) {
+    .controls-grid {
+      grid-template-columns: 1fr;
+    }
+    .health-bar-bg {
+      width: 90px;
+    }
+    .hud-panel {
+      padding: 6px 8px;
+    }
+    button {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="ui-overlay">
+    <!-- Player 1 HUD -->
+    <div class="hud-panel p1-hud">
+      <div class="player-title">
+        <span style="color:#38bdf8;">●</span> P1 (CYAN) <span id="p1-score" style="background:#1e293b;padding:1px 6px;border-radius:4px;font-size:12px;">0</span>
+      </div>
+      <div class="health-bar-bg">
+        <div id="p1-hp" class="health-bar-fill" style="width:100%;background:#38bdf8;"></div>
+      </div>
+      <div id="p1-weapon" class="weapon-info">Unarmed (F to Grab)</div>
+    </div>
+
+    <!-- Center Map & Mode Controls -->
+    <div class="hud-panel center-controls">
+      <div class="btn-group">
+        <button id="btn-map-0" class="active" onclick="selectMap(0)">Map 1: Foundry</button>
+        <button id="btn-map-1" onclick="selectMap(1)">Map 2: Cavern</button>
+        <button id="btn-map-2" onclick="selectMap(2)">Map 3: Sky Spire</button>
+      </div>
+      <div class="btn-group">
+        <button id="btn-p2-mode" onclick="toggleP2Mode()">P2: Bot AI</button>
+        <button id="btn-touch-toggle" class="active" onclick="toggleTouchControls()">Touch UI: ON</button>
+        <button onclick="spawnWeaponCrate()">+ Weapon</button>
+        <button onclick="toggleHelp()">Controls</button>
+      </div>
+    </div>
+
+    <!-- Player 2 HUD -->
+    <div class="hud-panel p2-hud">
+      <div class="player-title">
+        <span id="p2-score" style="background:#1e293b;padding:1px 6px;border-radius:4px;font-size:12px;">0</span> <span id="p2-name">P2 (BOT)</span> <span style="color:#f43f5e;">●</span>
+      </div>
+      <div class="health-bar-bg" style="margin-left:auto;">
+        <div id="p2-hp" class="health-bar-fill" style="width:100%;background:#f43f5e;"></div>
+      </div>
+      <div id="p2-weapon" class="weapon-info">Unarmed</div>
+    </div>
+  </div>
+
+  <!-- On-Screen Touch Controls for Mobile & Tablet -->
+  <div id="touch-controls">
+    <!-- Left Hand: Left & Right Crawl Buttons -->
+    <div class="touch-cluster">
+      <button id="tbtn-left" class="touch-btn" aria-label="Crawl Left">◀</button>
+      <button id="tbtn-right" class="touch-btn" aria-label="Crawl Right">▶</button>
+    </div>
+
+    <!-- Right Hand: Drop, Grab, Shoot & Jump Buttons -->
+    <div class="touch-cluster">
+      <button id="tbtn-grab" class="touch-btn small-btn" aria-label="Grab or Drop Weapon">GRAB</button>
+      <button id="tbtn-drop" class="touch-btn small-btn" aria-label="Drop Off Wall">▼</button>
+      <button id="tbtn-shoot" class="touch-btn action-shoot" aria-label="Shoot">FIRE</button>
+      <button id="tbtn-jump" class="touch-btn" aria-label="Jump">JUMP</button>
+    </div>
+  </div>
+
+  <div id="banner-msg"></div>
+
+  <!-- Help / Start Modal -->
+  <div id="controls-modal">
+    <div class="modal-card">
+      <h1>ARACHNID ARENA</h1>
+      <p class="subtitle">Crawl up walls and upside down, press Down Arrow to drop off surfaces, or play right on your mobile touchscreen!</p>
+      
+      <div class="controls-grid">
+        <div class="ctrl-box" style="border-top: 3px solid #38bdf8;">
+          <h3 style="color:#38bdf8;">Player 1 (Desktop & Mobile)</h3>
+          <div class="ctrl-row"><span>Crawl Spider's Left / Right</span><span><span class="key-badge">A</span>/<span class="key-badge">D</span> or <span class="key-badge">←</span>/<span class="key-badge">→</span></span></div>
+          <div class="ctrl-row"><span>Jump Off Surface</span><span><span class="key-badge">SPACE</span> / <span class="key-badge">W</span> / <span class="key-badge">↑</span></span></div>
+          <div class="ctrl-row"><span>Let Go / Drop Off Wall</span><span><span class="key-badge">↓</span> / <span class="key-badge">S</span></span></div>
+          <div class="ctrl-row"><span>Aim & Shoot</span><span><span class="key-badge">MOUSE</span> / <span class="key-badge">TOUCH</span></span></div>
+          <div class="ctrl-row"><span>Pick Up / Drop Weapon</span><span><span class="key-badge">F</span> / <span class="key-badge">RIGHT CLICK</span></span></div>
+        </div>
+
+        <div class="ctrl-box" style="border-top: 3px solid #f43f5e;">
+          <h3 style="color:#f43f5e;">Player 2 (Crimson Spider - Local)</h3>
+          <div class="ctrl-row"><span>Crawl Spider's Left / Right</span><span><span class="key-badge">←</span> / <span class="key-badge">→</span></span></div>
+          <div class="ctrl-row"><span>Jump / Drop Off Wall</span><span><span class="key-badge">↑</span> Jump / <span class="key-badge">↓</span> Drop</span></div>
+          <div class="ctrl-row"><span>Aim Weapon</span><span>Auto-targets or <span class="key-badge">I</span><span class="key-badge">J</span><span class="key-badge">K</span><span class="key-badge">L</span></span></div>
+          <div class="ctrl-row"><span>Shoot</span><span><span class="key-badge">M</span> / <span class="key-badge">/</span></span></div>
+          <div class="ctrl-row"><span>Pick Up / Drop Weapon</span><span><span class="key-badge">N</span> / <span class="key-badge">.</span></span></div>
+        </div>
+      </div>
+
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:14px; text-align:center;">
+        Tip: On mobile or tablet, tap anywhere on the screen to aim and use the on-screen Left, Right, Jump, and ▼ Drop buttons!
+      </p>
+
+      <button class="start-btn" onclick="startGame()">ENTER ARENA</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Dynamic Camera State (zoomed out further from the spider for wide tactical visibility)
+const camera = {
+  x: 1400,
+  y: 850,
+  zoom: 0.62
+};
+
+function resizeCanvas() {
+  const container = document.getElementById('game-container');
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Input tracking (Keyboard + Mouse + Mobile Touch)
+const keys = {};
+const touchState = {
+  left: false,
+  right: false,
+  shoot: false,
+  aimActive: false
+};
+const mouse = { screenX: canvas.width / 2, screenY: canvas.height / 2, down: false };
+
+function screenToWorld(sx, sy) {
+  return {
+    x: (sx - canvas.width / 2) / camera.zoom + camera.x,
+    y: (sy - canvas.height / 2) / camera.zoom + camera.y
+  };
+}
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+    if (document.getElementById('controls-modal').style.display === 'none') {
+      e.preventDefault();
+    }
+  }
+  // Action triggers
+  if (e.code === 'KeyF') players[0]?.toggleWeapon();
+  if (e.code === 'KeyN' || e.code === 'Period') {
+    if (!p2IsBot) players[1]?.toggleWeapon();
+  }
+  // Jump triggers
+  if (e.code === 'Space' || e.code === 'KeyW' || (e.code === 'ArrowUp' && p2IsBot)) {
+    players[0]?.jump();
+  }
+  if ((e.code === 'ArrowUp' || e.code === 'Enter' || e.code === 'ShiftRight') && !p2IsBot) {
+    players[1]?.jump();
+  }
+  // Drop / Let go of wall triggers (Down Arrow or S)
+  if (e.code === 'KeyS' || (e.code === 'ArrowDown' && p2IsBot)) {
+    players[0]?.dropOffSurface();
+  }
+  if (e.code === 'ArrowDown' && !p2IsBot) {
+    players[1]?.dropOffSurface();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.screenX = e.clientX - rect.left;
+  mouse.screenY = e.clientY - rect.top;
+  touchState.aimActive = true;
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  if (e.button === 0) mouse.down = true;
+  if (e.button === 2) {
+    players[0]?.toggleWeapon();
+  }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  if (e.button === 0) mouse.down = false;
+});
+
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// Touch aiming directly on canvas
+canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 0) {
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    mouse.screenX = t.clientX - rect.left;
+    mouse.screenY = t.clientY - rect.top;
+    touchState.aimActive = true;
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 0) {
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    mouse.screenX = t.clientX - rect.left;
+    mouse.screenY = t.clientY - rect.top;
+    touchState.aimActive = true;
+  }
+}, { passive: true });
+
+// Bind On-Screen Touch Buttons (supports both touch & mouse clicks for testing)
+function bindHoldButton(el, onDown, onUp) {
+  const press = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add('pressed');
+    onDown();
+  };
+  const release = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.remove('pressed');
+    onUp();
+  };
+  el.addEventListener('touchstart', press, { passive: false });
+  el.addEventListener('touchend', release, { passive: false });
+  el.addEventListener('touchcancel', release, { passive: false });
+  el.addEventListener('mousedown', press);
+  el.addEventListener('mouseup', release);
+  el.addEventListener('mouseleave', release);
+}
+
+function bindTapButton(el, onTap) {
+  const tap = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add('pressed');
+    onTap();
+    setTimeout(() => el.classList.remove('pressed'), 120);
+  };
+  el.addEventListener('touchstart', tap, { passive: false });
+  el.addEventListener('mousedown', tap);
+}
+
+bindHoldButton(
+  document.getElementById('tbtn-left'),
+  () => { touchState.left = true; },
+  () => { touchState.left = false; }
+);
+bindHoldButton(
+  document.getElementById('tbtn-right'),
+  () => { touchState.right = true; },
+  () => { touchState.right = false; }
+);
+bindHoldButton(
+  document.getElementById('tbtn-shoot'),
+  () => { touchState.shoot = true; },
+  () => { touchState.shoot = false; }
+);
+bindTapButton(
+  document.getElementById('tbtn-jump'),
+  () => { players[0]?.jump(); }
+);
+bindTapButton(
+  document.getElementById('tbtn-drop'),
+  () => { players[0]?.dropOffSurface(); }
+);
+bindTapButton(
+  document.getElementById('tbtn-grab'),
+  () => { players[0]?.toggleWeapon(); }
+);
+
+function toggleTouchControls() {
+  const tc = document.getElementById('touch-controls');
+  const btn = document.getElementById('btn-touch-toggle');
+  const isHidden = tc.classList.toggle('hidden');
+  btn.textContent = isHidden ? 'Touch UI: OFF' : 'Touch UI: ON';
+  btn.classList.toggle('active', !isHidden);
+}
+
+// Weapon Definitions
+const WEAPON_TYPES = {
+  BLASTER: {
+    name: 'Plasma Rifle',
+    color: '#38bdf8',
+    accent: '#bae6fd',
+    cooldown: 14,
+    speed: 19,
+    damage: 14,
+    spread: 0.04,
+    count: 1,
+    ammo: 45,
+    recoil: 2.5,
+    length: 34,
+    bulletSize: 4.5
+  },
+  SHOTGUN: {
+    name: 'Scatter Cannon',
+    color: '#fb923c',
+    accent: '#fed7aa',
+    cooldown: 42,
+    speed: 17,
+    damage: 9,
+    spread: 0.24,
+    count: 6,
+    ammo: 18,
+    recoil: 7.5,
+    length: 30,
+    bulletSize: 3.5
+  },
+  RAILGUN: {
+    name: 'Volt Railgun',
+    color: '#c084fc',
+    accent: '#f3e8ff',
+    cooldown: 55,
+    speed: 30,
+    damage: 48,
+    spread: 0.0,
+    count: 1,
+    ammo: 8,
+    recoil: 9.0,
+    length: 42,
+    bulletSize: 6
+  },
+  SMG: {
+    name: 'Venom SMG',
+    color: '#4ade80',
+    accent: '#bbf7d0',
+    cooldown: 6,
+    speed: 18,
+    damage: 7,
+    spread: 0.14,
+    count: 1,
+    ammo: 80,
+    recoil: 1.4,
+    length: 26,
+    bulletSize: 3
+  }
+};
+const WEAPON_KEYS = Object.keys(WEAPON_TYPES);
+
+// Expanded Large-Scale Multi-Screen Maps (2800 x 1700)
+const MAPS = [
+  {
+    name: 'Subterranean Foundry',
+    width: 2800,
+    height: 1700,
+    bgTop: '#131826',
+    bgBot: '#090c14',
+    accent: '#f59e0b',
+    platforms: [
+      { x: 0, y: 0, w: 2800, h: 48, type: 'metal' },
+      { x: 0, y: 1652, w: 2800, h: 48, type: 'metal' },
+      { x: 0, y: 48, w: 48, h: 1604, type: 'metal' },
+      { x: 2752, y: 48, w: 48, h: 1604, type: 'metal' },
+
+      { x: 1120, y: 260, w: 560, h: 64, type: 'hazard' },
+      { x: 1350, y: 48, w: 100, h: 212, type: 'pillar' },
+      { x: 520, y: 340, w: 420, h: 40, type: 'metal' },
+      { x: 1860, y: 340, w: 420, h: 40, type: 'metal' },
+
+      { x: 380, y: 580, w: 56, h: 520, type: 'pillar' },
+      { x: 2364, y: 580, w: 56, h: 520, type: 'pillar' },
+      { x: 960, y: 560, w: 52, h: 440, type: 'pillar' },
+      { x: 1788, y: 560, w: 52, h: 440, type: 'pillar' },
+
+      { x: 1140, y: 740, w: 520, h: 46, type: 'metal' },
+      { x: 640, y: 840, w: 260, h: 36, type: 'hazard' },
+      { x: 1900, y: 840, w: 260, h: 36, type: 'hazard' },
+
+      { x: 48, y: 1180, w: 320, h: 42, type: 'metal' },
+      { x: 2432, y: 1180, w: 320, h: 42, type: 'metal' },
+      { x: 760, y: 1240, w: 440, h: 44, type: 'metal' },
+      { x: 1600, y: 1240, w: 440, h: 44, type: 'metal' },
+      { x: 1340, y: 1120, w: 120, h: 532, type: 'pillar' },
+      { x: 560, y: 1440, w: 240, h: 38, type: 'hazard' },
+      { x: 2000, y: 1440, w: 240, h: 38, type: 'hazard' }
+    ],
+    spawns: [{ x: 650, y: 290 }, { x: 2150, y: 290 }],
+    weaponSpawns: [
+      { x: 1400, y: 690 },
+      { x: 1400, y: 210 },
+      { x: 220, y: 1130 },
+      { x: 2580, y: 1130 },
+      { x: 980, y: 1190 },
+      { x: 1820, y: 1190 },
+      { x: 770, y: 790 },
+      { x: 2030, y: 790 }
+    ]
+  },
+  {
+    name: 'Crystal Cavern',
+    width: 3000,
+    height: 1800,
+    bgTop: '#161329',
+    bgBot: '#090712',
+    accent: '#a855f7',
+    platforms: [
+      { x: 0, y: 0, w: 3000, h: 48, type: 'rock' },
+      { x: 0, y: 1752, w: 3000, h: 48, type: 'rock' },
+      { x: 0, y: 48, w: 48, h: 1704, type: 'rock' },
+      { x: 2952, y: 48, w: 48, h: 1704, type: 'rock' },
+
+      { x: 640, y: 48, w: 74, h: 440, type: 'crystal' },
+      { x: 1460, y: 48, w: 80, h: 380, type: 'crystal' },
+      { x: 2286, y: 48, w: 74, h: 440, type: 'crystal' },
+
+      { x: 320, y: 660, w: 420, h: 46, type: 'rock' },
+      { x: 2260, y: 660, w: 420, h: 46, type: 'rock' },
+      { x: 1120, y: 680, w: 760, h: 54, type: 'crystal' },
+
+      { x: 860, y: 940, w: 62, h: 420, type: 'crystal' },
+      { x: 2078, y: 940, w: 62, h: 420, type: 'crystal' },
+      { x: 48, y: 1080, w: 340, h: 44, type: 'rock' },
+      { x: 2612, y: 1080, w: 340, h: 44, type: 'rock' },
+      { x: 1240, y: 1120, w: 520, h: 44, type: 'rock' },
+
+      { x: 560, y: 1320, w: 70, h: 432, type: 'rock' },
+      { x: 2370, y: 1320, w: 70, h: 432, type: 'rock' },
+      { x: 1420, y: 1400, w: 160, h: 352, type: 'crystal' }
+    ],
+    spawns: [{ x: 480, y: 600 }, { x: 2520, y: 600 }],
+    weaponSpawns: [
+      { x: 1500, y: 620 },
+      { x: 1500, y: 1060 },
+      { x: 220, y: 1020 },
+      { x: 2780, y: 1020 },
+      { x: 1060, y: 1700 },
+      { x: 1940, y: 1700 }
+    ]
+  },
+  {
+    name: 'Orbital Sky Spire',
+    width: 2800,
+    height: 1900,
+    bgTop: '#0f202e',
+    bgBot: '#070e17',
+    accent: '#38bdf8',
+    platforms: [
+      { x: 0, y: 0, w: 2800, h: 48, type: 'metal' },
+      { x: 0, y: 1852, w: 2800, h: 48, type: 'metal' },
+      { x: 0, y: 48, w: 48, h: 1804, type: 'metal' },
+      { x: 2752, y: 48, w: 48, h: 1804, type: 'metal' },
+
+      { x: 1368, y: 320, w: 64, h: 1180, type: 'pillar' },
+      { x: 1060, y: 480, w: 680, h: 38, type: 'metal' },
+      { x: 960, y: 920, w: 880, h: 42, type: 'metal' },
+      { x: 1060, y: 1360, w: 680, h: 38, type: 'metal' },
+
+      { x: 340, y: 380, w: 380, h: 38, type: 'metal' },
+      { x: 2080, y: 380, w: 380, h: 38, type: 'metal' },
+      { x: 560, y: 640, w: 46, h: 560, type: 'hazard' },
+      { x: 2194, y: 640, w: 46, h: 560, type: 'hazard' },
+      { x: 220, y: 920, w: 260, h: 38, type: 'metal' },
+      { x: 2320, y: 920, w: 260, h: 38, type: 'metal' },
+      { x: 340, y: 1440, w: 380, h: 38, type: 'metal' },
+      { x: 2080, y: 1440, w: 380, h: 38, type: 'metal' }
+    ],
+    spawns: [{ x: 480, y: 320 }, { x: 2320, y: 320 }],
+    weaponSpawns: [
+      { x: 1200, y: 430 },
+      { x: 1600, y: 430 },
+      { x: 1140, y: 870 },
+      { x: 1660, y: 870 },
+      { x: 1200, y: 1310 },
+      { x: 1600, y: 1310 },
+      { x: 350, y: 870 },
+      { x: 2450, y: 870 }
+    ]
+  }
+];
+
+let currentMapIndex = 0;
+let p2IsBot = true;
+let particles = [];
+let bullets = [];
+let droppedWeapons = [];
+
+// Utility math
+function dist(x1, y1, x2, y2) {
+  return Math.hypot(x2 - x1, y2 - y1);
+}
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+// Ragdoll Spring Point for Spider Abdomen
+class RagdollNode {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.oldX = x;
+    this.oldY = y;
+  }
+  update(gravityY = 0.25, friction = 0.92) {
+    const vx = (this.x - this.oldX) * friction;
+    const vy = (this.y - this.oldY) * friction;
+    this.oldX = this.x;
+    this.oldY = this.y;
+    this.x += vx;
+    this.y += vy + gravityY;
+  }
+}
+
+// Spider Entity Class
+class Spider {
+  constructor(id, name, color, fillColor, x, y) {
+    this.id = id;
+    this.name = name;
+    this.color = color;
+    this.fillColor = fillColor;
+    this.x = x;
+    this.y = y;
+    this.vx = 0;
+    this.vy = 0;
+    this.radius = 20;
+
+    // Surface adhesion state
+    this.attached = false;
+    this.detachCooldown = 0;
+    this.normalX = 0;
+    this.normalY = -1;
+    this.bodyAngle = 0;
+
+    this.hp = 100;
+    this.maxHp = 100;
+    this.score = 0;
+    this.dead = false;
+    this.respawnTimer = 0;
+
+    // Weapon state
+    this.weapon = null;
+    this.ammo = 0;
+    this.cooldown = 0;
+    this.aimAngle = id === 0 ? 0 : Math.PI;
+    this.weaponRecoil = 0;
+
+    // Ragdoll Abdomen & 8 Procedural IK Legs
+    this.abdomen = new RagdollNode(x, y + 18);
+    this.legs = [];
+    for (let i = 0; i < 8; i++) {
+      const side = i < 4 ? -1 : 1;
+      const idx = i % 4;
+      this.legs.push({
+        side,
+        idx,
+        footX: x + side * 28,
+        footY: y + 15,
+        targetX: x + side * 28,
+        targetY: y + 15,
+        stepProgress: 1,
+        startX: x,
+        startY: y
+      });
+    }
+    this.stepTimer = 0;
+  }
+
+  respawn() {
+    const map = MAPS[currentMapIndex];
+    const sp = map.spawns[this.id % map.spawns.length];
+    this.x = sp.x;
+    this.y = sp.y;
+    this.vx = 0;
+    this.vy = 0;
+    this.hp = this.maxHp;
+    this.dead = false;
+    this.attached = false;
+    this.detachCooldown = 0;
+    this.normalX = 0;
+    this.normalY = -1;
+    this.abdomen = new RagdollNode(this.x, this.y + 18);
+    for (let leg of this.legs) {
+      leg.footX = this.x + leg.side * 25;
+      leg.footY = this.y + 15;
+      leg.targetX = leg.footX;
+      leg.targetY = leg.footY;
+    }
+    this.equipWeapon('BLASTER');
+  }
+
+  equipWeapon(typeKey) {
+    const spec = WEAPON_TYPES[typeKey];
+    this.weapon = typeKey;
+    this.ammo = spec.ammo;
+    this.cooldown = 0;
+    updateHUD();
+  }
+
+  toggleWeapon() {
+    if (this.dead) return;
+    let closest = null;
+    let bestDist = 60;
+    for (let dw of droppedWeapons) {
+      const d = dist(this.x, this.y, dw.x, dw.y);
+      if (d < bestDist) {
+        bestDist = d;
+        closest = dw;
+      }
+    }
+
+    if (this.weapon) {
+      droppedWeapons.push({
+        type: this.weapon,
+        ammo: this.ammo,
+        x: this.x + Math.cos(this.aimAngle) * 18,
+        y: this.y + Math.sin(this.aimAngle) * 18,
+        vx: Math.cos(this.aimAngle) * 6 + this.vx * 0.5,
+        vy: Math.sin(this.aimAngle) * 6 - 3,
+        angle: this.aimAngle,
+        vAngle: (Math.random() - 0.5) * 0.25,
+        pickupDelay: 25
+      });
+      this.weapon = null;
+      this.ammo = 0;
+    }
+
+    if (closest) {
+      this.weapon = closest.type;
+      this.ammo = closest.ammo;
+      droppedWeapons = droppedWeapons.filter(w => w !== closest);
+      spawnParticles(this.x, this.y, WEAPON_TYPES[this.weapon].color, 10);
+    }
+    updateHUD();
+  }
+
+  jump() {
+    if (this.dead) return;
+    if (this.attached) {
+      const jumpPower = 12.2;
+      this.vx = this.normalX * jumpPower + this.vx * 0.65;
+      this.vy = this.normalY * jumpPower - 3.4;
+      this.attached = false;
+      this.detachCooldown = 6;
+      this.abdomen.oldX += this.normalX * 6;
+      this.abdomen.oldY += this.normalY * 6;
+      spawnParticles(this.x - this.normalX * 16, this.y - this.normalY * 16, this.color, 8);
+    }
+  }
+
+  dropOffSurface() {
+    if (this.dead) return;
+    if (this.attached) {
+      this.x += this.normalX * 6;
+      this.y += this.normalY * 6;
+      this.vx = this.normalX * 2.5;
+      this.vy = Math.max(1.5, this.normalY * 2.5);
+      this.attached = false;
+      this.detachCooldown = 14;
+      spawnParticles(this.x - this.normalX * 14, this.y - this.normalY * 14, this.color, 6);
+    }
+  }
+
+  shoot() {
+    if (this.dead || !this.weapon || this.cooldown > 0) return;
+    const spec = WEAPON_TYPES[this.weapon];
+    this.cooldown = spec.cooldown;
+    this.weaponRecoil = 10;
+
+    const muzzleDist = spec.length + 12;
+    const mx = this.x + Math.cos(this.aimAngle) * muzzleDist;
+    const my = this.y + Math.sin(this.aimAngle) * muzzleDist;
+
+    for (let i = 0; i < spec.count; i++) {
+      const a = this.aimAngle + (Math.random() - 0.5) * spec.spread;
+      bullets.push({
+        ownerId: this.id,
+        x: mx,
+        y: my,
+        vx: Math.cos(a) * spec.speed,
+        vy: Math.sin(a) * spec.speed,
+        damage: spec.damage,
+        color: spec.color,
+        accent: spec.accent,
+        size: spec.bulletSize,
+        life: 110
+      });
+    }
+
+    const rx = Math.cos(this.aimAngle) * spec.recoil;
+    const ry = Math.sin(this.aimAngle) * spec.recoil;
+    if (!this.attached) {
+      this.vx -= rx * 0.55;
+      this.vy -= ry * 0.55;
+    }
+    this.abdomen.x -= rx * 0.8;
+    this.abdomen.y -= ry * 0.8;
+
+    spawnParticles(mx, my, spec.color, 5);
+
+    this.ammo--;
+    if (this.ammo <= 0) {
+      spawnParticles(this.x, this.y, '#94a3b8', 12);
+      this.weapon = null;
+    }
+    updateHUD();
+  }
+
+  takeDamage(dmg, knockX, knockY, attackerId) {
+    if (this.dead) return;
+    this.hp = Math.max(0, this.hp - dmg);
+    this.abdomen.x += knockX * 1.4;
+    this.abdomen.y += knockY * 1.4;
+    if (!this.attached) {
+      this.vx += knockX * 0.5;
+      this.vy += knockY * 0.5;
+    }
+    spawnParticles(this.x, this.y, this.color, 10);
+    updateHUD();
+
+    if (this.hp <= 0) {
+      this.dead = true;
+      this.respawnTimer = 110;
+      if (this.weapon) {
+        this.toggleWeapon();
+      }
+      spawnParticles(this.x, this.y, this.color, 35);
+      if (attackerId !== undefined && players[attackerId]) {
+        players[attackerId].score++;
+        showBanner(`${players[attackerId].name} Eliminated ${this.name}!`);
+      }
+      updateHUD();
+    }
+  }
+
+  update(platforms) {
+    if (this.dead) {
+      this.respawnTimer--;
+      if (this.respawnTimer <= 0) {
+        this.respawn();
+        updateHUD();
+      }
+      return;
+    }
+
+    if (this.cooldown > 0) this.cooldown--;
+    if (this.detachCooldown > 0) this.detachCooldown--;
+    if (this.weaponRecoil > 0) this.weaponRecoil *= 0.82;
+
+    let inputDir = 0;
+    let wantShoot = false;
+
+    if (this.id === 0) {
+      if (keys['KeyA'] || (p2IsBot && keys['ArrowLeft']) || touchState.left) inputDir -= 1;
+      if (keys['KeyD'] || (p2IsBot && keys['ArrowRight']) || touchState.right) inputDir += 1;
+
+      if (touchState.aimActive) {
+        const worldMouse = screenToWorld(mouse.screenX, mouse.screenY);
+        this.aimAngle = Math.atan2(worldMouse.y - this.y, worldMouse.x - this.x);
+      } else if (players[1] && !players[1].dead) {
+        this.aimAngle = Math.atan2(players[1].y - this.y, players[1].x - this.x);
+      }
+      wantShoot = mouse.down || keys['KeyE'] || touchState.shoot;
+    } else if (!p2IsBot) {
+      if (keys['ArrowLeft']) inputDir -= 1;
+      if (keys['ArrowRight']) inputDir += 1;
+
+      let aimX = 0, aimY = 0;
+      if (keys['KeyJ']) aimX -= 1;
+      if (keys['KeyL']) aimX += 1;
+      if (keys['KeyI']) aimY -= 1;
+      if (keys['KeyK']) aimY += 1;
+      if (aimX !== 0 || aimY !== 0) {
+        this.aimAngle = Math.atan2(aimY, aimX);
+      } else if (players[0] && !players[0].dead) {
+        this.aimAngle = Math.atan2(players[0].y - this.y, players[0].x - this.x);
+      }
+      wantShoot = keys['KeyM'] || keys['Slash'];
+    } else {
+      const ai = this.computeBotAI();
+      inputDir = ai.inputDir;
+      wantShoot = ai.shoot;
+    }
+
+    const crawlSpeed = 6.2;
+
+    if (this.attached) {
+      const tx = -this.normalY;
+      const ty = this.normalX;
+
+      if (inputDir !== 0) {
+        const moveX = tx * inputDir;
+        const moveY = ty * inputDir;
+        this.vx = moveX * crawlSpeed;
+        this.vy = moveY * crawlSpeed;
+
+        this.x += this.vx - this.normalX * 2.2;
+        this.y += this.vy - this.normalY * 2.2;
+      } else {
+        this.vx = 0;
+        this.vy = 0;
+        this.x -= this.normalX * 1.2;
+        this.y -= this.normalY * 1.2;
+      }
+
+      const contact = this.findSurfaceContact(platforms, this.vx, this.vy);
+      if (contact) {
+        this.normalX = contact.nx;
+        this.normalY = contact.ny;
+        this.x = contact.snapX;
+        this.y = contact.snapY;
+      } else {
+        this.attached = false;
+      }
+    } else {
+      this.vy += 0.46;
+      this.vx += inputDir * 0.42;
+      this.vx *= 0.97;
+      this.vy *= 0.99;
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      const contact = this.findSurfaceContact(platforms, this.vx, this.vy);
+      if (contact) {
+        if (this.detachCooldown === 0 || contact.ny < -0.5) {
+          this.attached = true;
+          this.detachCooldown = 0;
+          this.normalX = contact.nx;
+          this.normalY = contact.ny;
+          this.x = contact.snapX;
+          this.y = contact.snapY;
+          this.abdomen.oldX -= this.vx * 0.6;
+          this.abdomen.oldY -= this.vy * 0.6;
+          this.vx = 0;
+          this.vy = 0;
+        } else {
+          this.x = contact.snapX;
+          this.y = contact.snapY;
+          if (contact.nx !== 0) this.vx = 0;
+        }
+      }
+    }
+
+    const targetBodyAngle = this.attached
+      ? Math.atan2(this.normalY, this.normalX) + Math.PI / 2
+      : this.vx * 0.05;
+    let diff = targetBodyAngle - this.bodyAngle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    this.bodyAngle += diff * 0.25;
+
+    if (wantShoot) {
+      this.shoot();
+    }
+
+    // Update Ragdoll Abdomen
+    this.abdomen.update(0.32, 0.88);
+    const desiredBackX = this.x + Math.sin(this.bodyAngle) * -17;
+    const desiredBackY = this.y - Math.cos(this.bodyAngle) * -17;
+    this.abdomen.x += (desiredBackX - this.abdomen.x) * 0.22;
+    this.abdomen.y += (desiredBackY - this.abdomen.y) * 0.22;
+
+    const dx = this.abdomen.x - this.x;
+    const dy = this.abdomen.y - this.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const maxDist = 21;
+    if (d > maxDist) {
+      this.abdomen.x = this.x + (dx / d) * maxDist;
+      this.abdomen.y = this.y + (dy / d) * maxDist;
+    }
+
+    this.updateLegs(platforms);
+  }
+
+  findSurfaceContact(platforms, vx = 0, vy = 0) {
+    const reach = this.attached ? this.radius + 9 : this.radius + 3;
+    let best = null;
+    let bestScore = Infinity;
+
+    for (let p of platforms) {
+      const closestX = clamp(this.x, p.x, p.x + p.w);
+      const closestY = clamp(this.y, p.y, p.y + p.h);
+      const dx = this.x - closestX;
+      const dy = this.y - closestY;
+      const d = Math.hypot(dx, dy);
+
+      if (d < reach) {
+        let nx = 0, ny = 0, snapX = this.x, snapY = this.y;
+        if (d > 0.001) {
+          nx = dx / d;
+          ny = dy / d;
+          snapX = closestX + nx * this.radius;
+          snapY = closestY + ny * this.radius;
+        } else {
+          const leftPen = Math.abs(this.x - p.x);
+          const rightPen = Math.abs(p.x + p.w - this.x);
+          const topPen = Math.abs(this.y - p.y);
+          const botPen = Math.abs(p.y + p.h - this.y);
+          const m = Math.min(leftPen, rightPen, topPen, botPen);
+          if (m === topPen) { nx = 0; ny = -1; snapY = p.y - this.radius; }
+          else if (m === botPen) { nx = 0; ny = 1; snapY = p.y + p.h + this.radius; }
+          else if (m === leftPen) { nx = -1; ny = 0; snapX = p.x - this.radius; }
+          else { nx = 1; ny = 0; snapX = p.x + p.w + this.radius; }
+        }
+
+        const approachDot = vx * nx + vy * ny;
+        const score = d + (approachDot < -0.1 ? -6 : 0);
+
+        if (score < bestScore) {
+          bestScore = score;
+          best = { nx, ny, snapX, snapY };
+        }
+      }
+    }
+    return best;
+  }
+
+  updateLegs(platforms) {
+    this.stepTimer++;
+    const cos = Math.cos(this.bodyAngle);
+    const sin = Math.sin(this.bodyAngle);
+
+    for (let i = 0; i < this.legs.length; i++) {
+      const leg = this.legs[i];
+      const spreadAlong = (leg.idx - 1.5) * 14;
+      const spreadOut = leg.side * 34;
+
+      let idealX = this.x + cos * spreadOut - sin * spreadAlong;
+      let idealY = this.y + sin * spreadOut + cos * spreadAlong;
+
+      if (this.attached) {
+        idealX -= this.normalX * 14;
+        idealY -= this.normalY * 14;
+
+        for (let p of platforms) {
+          const cx = clamp(idealX, p.x, p.x + p.w);
+          const cy = clamp(idealY, p.y, p.y + p.h);
+          if (dist(idealX, idealY, cx, cy) < 28) {
+            idealX = cx;
+            idealY = cy;
+            break;
+          }
+        }
+
+        const footDist = dist(leg.footX, leg.footY, idealX, idealY);
+        const gaitTurn = (this.stepTimer + leg.idx * 4 + (leg.side > 0 ? 2 : 0)) % 8 === 0;
+        if ((footDist > 26 && gaitTurn) || footDist > 48) {
+          leg.startX = leg.footX;
+          leg.startY = leg.footY;
+          leg.targetX = idealX;
+          leg.targetY = idealY;
+          leg.stepProgress = 0;
+        }
+
+        if (leg.stepProgress < 1) {
+          leg.stepProgress = Math.min(1, leg.stepProgress + 0.25);
+          const lift = Math.sin(leg.stepProgress * Math.PI) * 10;
+          leg.footX = leg.startX + (leg.targetX - leg.startX) * leg.stepProgress + this.normalX * lift;
+          leg.footY = leg.startY + (leg.targetY - leg.startY) * leg.stepProgress + this.normalY * lift;
+        }
+      } else {
+        const dangleX = this.x + cos * (leg.side * 28) - this.vx * 1.6;
+        const dangleY = this.y + 22 + Math.abs(leg.idx - 1.5) * 4 - this.vy * 0.8;
+        leg.footX += (dangleX - leg.footX) * 0.18;
+        leg.footY += (dangleY - leg.footY) * 0.18;
+      }
+    }
+  }
+
+  computeBotAI() {
+    const enemy = players[0];
+    let inputDir = 0, shoot = false;
+
+    if (!this.weapon && droppedWeapons.length > 0) {
+      let closestW = droppedWeapons[0];
+      let minD = Infinity;
+      for (let w of droppedWeapons) {
+        const d = dist(this.x, this.y, w.x, w.y);
+        if (d < minD) { minD = d; closestW = w; }
+      }
+      const tx = -this.normalY;
+      const ty = this.normalX;
+      const dot = (closestW.x - this.x) * tx + (closestW.y - this.y) * ty;
+      inputDir = dot >= 0 ? 1 : -1;
+      if (minD < 50) {
+        this.toggleWeapon();
+      } else if (this.attached && Math.random() < 0.025) {
+        this.jump();
+      }
+      return { inputDir, shoot: false };
+    }
+
+    if (enemy && !enemy.dead) {
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const d = Math.hypot(dx, dy);
+
+      this.aimAngle = Math.atan2(dy, dx) + Math.sin(Date.now() * 0.005) * 0.06;
+
+      const tx = -this.normalY;
+      const ty = this.normalX;
+      const towardEnemy = dx * tx + dy * ty >= 0 ? 1 : -1;
+
+      if (d > 420) {
+        inputDir = towardEnemy;
+      } else if (d < 220) {
+        inputDir = -towardEnemy;
+      } else {
+        inputDir = Math.sin(Date.now() * 0.002) > 0 ? 1 : -1;
+      }
+
+      if (this.attached && dy > 220 && this.normalY > 0.5 && Math.random() < 0.03) {
+        this.dropOffSurface();
+      } else if (this.attached && (dy < -140 || Math.random() < 0.015)) {
+        this.jump();
+      }
+
+      if (this.weapon && d < 900) {
+        shoot = true;
+      }
+    }
+    return { inputDir, shoot };
+  }
+
+  draw(ctx) {
+    if (this.dead) return;
+
+    // 1. Draw 8 Articulated Outline-and-Fill Legs
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let leg of this.legs) {
+      const midX = (this.x + leg.footX) / 2;
+      const midY = (this.y + leg.footY) / 2;
+      const kneeX = midX + Math.sin(this.bodyAngle) * 16 + Math.cos(this.bodyAngle) * (leg.side * 10);
+      const kneeY = midY - Math.cos(this.bodyAngle) * 16 + Math.sin(this.bodyAngle) * (leg.side * 10);
+
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 6.5;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(kneeX, kneeY);
+      ctx.lineTo(leg.footX, leg.footY);
+      ctx.stroke();
+
+      ctx.strokeStyle = this.fillColor;
+      ctx.lineWidth = 3.2;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(kneeX, kneeY);
+      ctx.lineTo(leg.footX, leg.footY);
+      ctx.stroke();
+    }
+
+    // 2. Draw Ragdoll Abdomen (Outline + Fill)
+    const abAngle = Math.atan2(this.abdomen.y - this.y, this.abdomen.x - this.x);
+    ctx.save();
+    ctx.translate(this.abdomen.x, this.abdomen.y);
+    ctx.rotate(abAngle);
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 15, 11.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = this.fillColor;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = this.color;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-5, -4);
+    ctx.lineTo(5, 0);
+    ctx.lineTo(-5, 4);
+    ctx.closePath();
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Draw Thorax / Head (Outline + Fill)
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.bodyAngle);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
+    ctx.fillStyle = this.fillColor;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = this.color;
+    ctx.stroke();
+
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(-4.5, -7, 2.2, 0, Math.PI * 2);
+    ctx.arc(4.5, -7, 2.2, 0, Math.PI * 2);
+    ctx.arc(-8, -4, 1.4, 0, Math.PI * 2);
+    ctx.arc(8, -4, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 4. Draw Held Weapon (Outline + Fill)
+    if (this.weapon) {
+      const spec = WEAPON_TYPES[this.weapon];
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.aimAngle);
+      ctx.translate(-this.weaponRecoil, 0);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = spec.color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(10, -5, spec.length, 10, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = spec.color;
+      ctx.fillRect(14, -1.5, spec.length - 8, 3);
+      ctx.restore();
+    }
+
+    // 5. Floating Mini Health Bar
+    const barW = 36;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+    ctx.fillRect(this.x - barW / 2, this.y - 34, barW, 5);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x - barW / 2, this.y - 34, barW * (this.hp / this.maxHp), 5);
+  }
+}
+
+// Initialize 2 Players
+const players = [
+  new Spider(0, 'P1', '#38bdf8', '#0c2d48', 650, 290),
+  new Spider(1, 'P2', '#f43f5e', '#4c0519', 2150, 290)
+];
+
+function spawnParticles(x, y, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = Math.random() * 5 + 1.5;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * s,
+      vy: Math.sin(a) * s,
+      color,
+      size: Math.random() * 3.5 + 1.5,
+      life: Math.random() * 22 + 12
+    });
+  }
+}
+
+function spawnWeaponCrate(customX, customY) {
+  const map = MAPS[currentMapIndex];
+  const sp = map.weaponSpawns[Math.floor(Math.random() * map.weaponSpawns.length)];
+  const key = WEAPON_KEYS[Math.floor(Math.random() * WEAPON_KEYS.length)];
+  const x = customX !== undefined ? customX : sp.x + (Math.random() - 0.5) * 40;
+  const y = customY !== undefined ? customY : sp.y;
+
+  droppedWeapons.push({
+    type: key,
+    ammo: WEAPON_TYPES[key].ammo,
+    x,
+    y,
+    vx: (Math.random() - 0.5) * 3,
+    vy: -2,
+    angle: 0,
+    vAngle: 0.05,
+    pickupDelay: 0
+  });
+  spawnParticles(x, y, WEAPON_TYPES[key].color, 12);
+}
+
+function selectMap(idx) {
+  currentMapIndex = idx;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`btn-map-${i}`).classList.toggle('active', i === idx);
+  }
+  resetArena();
+}
+
+function toggleP2Mode() {
+  p2IsBot = !p2IsBot;
+  const btn = document.getElementById('btn-p2-mode');
+  const p2Name = document.getElementById('p2-name');
+  if (p2IsBot) {
+    btn.textContent = 'P2: Bot AI';
+    btn.classList.remove('active');
+    p2Name.textContent = 'P2 (BOT)';
+  } else {
+    btn.textContent = 'P2: Local Friend';
+    btn.classList.add('active');
+    p2Name.textContent = 'P2 (FRIEND)';
+    showBanner('Player 2 Joined! P1 uses WASD, P2 uses Arrow Keys!');
+  }
+}
+
+function toggleHelp() {
+  const modal = document.getElementById('controls-modal');
+  modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+}
+
+function startGame() {
+  document.getElementById('controls-modal').style.display = 'none';
+  resetArena();
+}
+
+let bannerTimeout;
+function showBanner(msg) {
+  const el = document.getElementById('banner-msg');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(bannerTimeout);
+  bannerTimeout = setTimeout(() => {
+    el.style.opacity = '0';
+  }, 2400);
+}
+
+function updateHUD() {
+  const p1 = players[0];
+  const p2 = players[1];
+  document.getElementById('p1-hp').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
+  document.getElementById('p2-hp').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
+  document.getElementById('p1-score').textContent = p1.score;
+  document.getElementById('p2-score').textContent = p2.score;
+
+  document.getElementById('p1-weapon').textContent = p1.weapon
+    ? `${WEAPON_TYPES[p1.weapon].name} [${p1.ammo}]`
+    : 'Unarmed';
+
+  document.getElementById('p2-weapon').textContent = p2.weapon
+    ? `${WEAPON_TYPES[p2.weapon].name} [${p2.ammo}]`
+    : 'Unarmed';
+}
+
+function resetArena() {
+  bullets = [];
+  particles = [];
+  droppedWeapons = [];
+  players[0].respawn();
+  players[1].respawn();
+
+  camera.x = players[0].x;
+  camera.y = players[0].y;
+  camera.zoom = canvas.width < 700 ? 0.5 : 0.62;
+
+  const map = MAPS[currentMapIndex];
+  for (let sp of map.weaponSpawns) {
+    spawnWeaponCrate(sp.x, sp.y);
+  }
+  updateHUD();
+}
+
+// Smooth Spider-Centered Camera Controller (zoomed out further for wide arena view)
+function updateCamera(map) {
+  const p1 = players[0];
+  const p2 = players[1];
+
+  let targetX = p1.x;
+  let targetY = p1.y;
+  let targetZoom = canvas.width < 700 ? 0.5 : 0.62;
+
+  if (!p2IsBot && !p1.dead && !p2.dead) {
+    targetX = (p1.x + p2.x) / 2;
+    targetY = (p1.y + p2.y) / 2;
+    const spanX = Math.abs(p1.x - p2.x) + 640;
+    const spanY = Math.abs(p1.y - p2.y) + 520;
+    const neededZoom = Math.min(canvas.width / spanX, canvas.height / spanY);
+    targetZoom = clamp(neededZoom, 0.36, 0.65);
+  } else {
+    targetX = p1.x;
+    targetY = p1.y;
+  }
+
+  const halfViewW = (canvas.width / 2) / targetZoom;
+  const halfViewH = (canvas.height / 2) / targetZoom;
+  if (map.width > halfViewW * 2) {
+    targetX = clamp(targetX, halfViewW - 140, map.width - halfViewW + 140);
+  } else {
+    targetX = map.width / 2;
+  }
+  if (map.height > halfViewH * 2) {
+    targetY = clamp(targetY, halfViewH - 140, map.height - halfViewH + 140);
+  } else {
+    targetY = map.height / 2;
+  }
+
+  camera.x += (targetX - camera.x) * 0.14;
+  camera.y += (targetY - camera.y) * 0.14;
+  camera.zoom += (targetZoom - camera.zoom) * 0.1;
+}
+
+// Detailed Large-Scale Map Renderer
+function drawMap(map) {
+  const grad = ctx.createLinearGradient(0, 0, 0, map.height);
+  grad.addColorStop(0, map.bgTop);
+  grad.addColorStop(1, map.bgBot);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, map.width, map.height);
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= map.width; x += 80) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, map.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= map.height; y += 80) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(map.width, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+  ctx.lineWidth = 10;
+  for (let bx = 300; bx < map.width; bx += 700) {
+    ctx.beginPath();
+    ctx.moveTo(bx, 48);
+    ctx.lineTo(bx + 260, map.height - 48);
+    ctx.moveTo(bx + 260, 48);
+    ctx.lineTo(bx, map.height - 48);
+    ctx.stroke();
+  }
+
+  for (let p of map.platforms) {
+    ctx.save();
+    ctx.fillStyle = p.type === 'crystal' ? '#1e1638' : '#161e2e';
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+
+    ctx.beginPath();
+    ctx.rect(p.x, p.y, p.w, p.h);
+    ctx.clip();
+
+    if (p.type === 'hazard') {
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
+      for (let sx = p.x - p.h; sx < p.x + p.w + p.h; sx += 28) {
+        ctx.beginPath();
+        ctx.moveTo(sx, p.y);
+        ctx.lineTo(sx + 14, p.y);
+        ctx.lineTo(sx + 14 - p.h, p.y + p.h);
+        ctx.lineTo(sx - p.h, p.y + p.h);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (p.type === 'crystal') {
+      ctx.strokeStyle = 'rgba(192, 132, 252, 0.24)';
+      ctx.lineWidth = 2;
+      for (let cx = p.x; cx < p.x + p.w; cx += 45) {
+        ctx.beginPath();
+        ctx.moveTo(cx, p.y);
+        ctx.lineTo(cx + 22, p.y + p.h / 2);
+        ctx.lineTo(cx, p.y + p.h);
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+      ctx.lineWidth = 1.5;
+      for (let px = p.x + 60; px < p.x + p.w; px += 60) {
+        ctx.beginPath();
+        ctx.moveTo(px, p.y);
+        ctx.lineTo(px, p.y + p.h);
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+      for (let rx = p.x + 10; rx < p.x + p.w - 6; rx += 32) {
+        ctx.fillRect(rx, p.y + 6, 3, 3);
+        ctx.fillRect(rx, p.y + p.h - 9, 3, 3);
+      }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = p.type === 'hazard' ? '#f59e0b' : (p.type === 'crystal' ? '#a855f7' : '#475569');
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(p.x, p.y, p.w, p.h);
+  }
+}
+
+// Corner Radar / Minimap
+function drawMinimap(map) {
+  if (canvas.width < 600) return;
+  const mmW = 175;
+  const mmH = (map.height / map.width) * mmW;
+  const mmX = (canvas.width - mmW) / 2;
+  const mmY = canvas.height - mmH - 14;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(11, 15, 25, 0.78)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(mmX, mmY, mmW, mmH, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  const sx = mmW / map.width;
+  const sy = mmH / map.height;
+
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+  for (let p of map.platforms) {
+    ctx.fillRect(mmX + p.x * sx, mmY + p.y * sy, Math.max(2, p.w * sx), Math.max(2, p.h * sy));
+  }
+
+  for (let dw of droppedWeapons) {
+    ctx.fillStyle = WEAPON_TYPES[dw.type].color;
+    ctx.fillRect(mmX + dw.x * sx - 1.5, mmY + dw.y * sy - 1.5, 3, 3);
+  }
+
+  for (let p of players) {
+    if (p.dead) continue;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(mmX + p.x * sx, mmY + p.y * sy, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+let weaponRespawnTimer = 0;
+
+function gameLoop() {
+  const map = MAPS[currentMapIndex];
+
+  if (droppedWeapons.length < 5) {
+    weaponRespawnTimer++;
+    if (weaponRespawnTimer > 200) {
+      spawnWeaponCrate();
+      weaponRespawnTimer = 0;
+    }
+  }
+
+  for (let p of players) {
+    p.update(map.platforms);
+  }
+
+  updateCamera(map);
+
+  for (let dw of droppedWeapons) {
+    if (dw.pickupDelay > 0) dw.pickupDelay--;
+    dw.vy += 0.35;
+    dw.x += dw.vx;
+    dw.y += dw.vy;
+    dw.angle += dw.vAngle;
+
+    for (let plat of map.platforms) {
+      if (dw.x > plat.x && dw.x < plat.x + plat.w && dw.y + 10 > plat.y && dw.y - 10 < plat.y + plat.h) {
+        if (dw.vy > 0 && dw.y - dw.vy <= plat.y) {
+          dw.y = plat.y - 10;
+          dw.vy *= -0.45;
+          dw.vx *= 0.75;
+          dw.vAngle *= 0.5;
+        }
+      }
+    }
+  }
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.vx;
+    b.y += b.vy;
+    b.life--;
+
+    let hit = false;
+    for (let plat of map.platforms) {
+      if (b.x > plat.x && b.x < plat.x + plat.w && b.y > plat.y && b.y < plat.y + plat.h) {
+        hit = true;
+        spawnParticles(b.x, b.y, b.color, 5);
+        break;
+      }
+    }
+
+    if (!hit) {
+      for (let p of players) {
+        if (!p.dead && p.id !== b.ownerId && dist(b.x, b.y, p.x, p.y) < p.radius + b.size) {
+          hit = true;
+          p.takeDamage(b.damage, b.vx * 0.35, b.vy * 0.35, b.ownerId);
+          break;
+        }
+      }
+    }
+
+    if (hit || b.life <= 0) {
+      bullets.splice(i, 1);
+    }
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.vx *= 0.94;
+    pt.vy *= 0.94;
+    pt.life--;
+    if (pt.life <= 0) particles.splice(i, 1);
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.scale(camera.zoom, camera.zoom);
+  ctx.translate(-camera.x, -camera.y);
+
+  drawMap(map);
+
+  for (let dw of droppedWeapons) {
+    const spec = WEAPON_TYPES[dw.type];
+    ctx.save();
+    ctx.translate(dw.x, dw.y);
+    ctx.rotate(dw.angle);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = spec.color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(-spec.length / 2, -5, spec.length, 10, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = spec.color;
+    ctx.fillRect(-spec.length / 2 + 4, -1.5, spec.length - 8, 3);
+    ctx.restore();
+
+    for (let p of players) {
+      if (!p.dead && dist(p.x, p.y, dw.x, dw.y) < 60) {
+        ctx.fillStyle = spec.color;
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.id === 0 ? `[F / GRAB] ${spec.name}` : `[N] ${spec.name}`, dw.x, dw.y - 20);
+      }
+    }
+  }
+
+  for (let p of players) {
+    p.draw(ctx);
+  }
+
+  for (let b of bullets) {
+    ctx.save();
+    ctx.fillStyle = b.accent;
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (let pt of particles) {
+    ctx.globalAlpha = Math.max(0, pt.life / 25);
+    ctx.fillStyle = pt.color;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  if (!players[0].dead && touchState.aimActive) {
+    const worldMouse = screenToWorld(mouse.screenX, mouse.screenY);
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(worldMouse.x, worldMouse.y, 12, 0, Math.PI * 2);
+    ctx.moveTo(worldMouse.x - 18, worldMouse.y);
+    ctx.lineTo(worldMouse.x + 18, worldMouse.y);
+    ctx.moveTo(worldMouse.x, worldMouse.y - 18);
+    ctx.lineTo(worldMouse.x, worldMouse.y + 18);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  drawMinimap(map);
+
+  requestAnimationFrame(gameLoop);
+}
+
+resetArena();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
